@@ -1,0 +1,59 @@
+@using EventEaseApp.Models
+
+<div class="p-3 border rounded bg-white shadow-sm">
+    <h6 class="border-bottom pb-2">📊 Live Capacity Tracker</h6>
+    <p class="mb-1">Capacity: <strong>@CurrentAttendees / @MaxCapacity</strong></p>
+    
+    <div class="progress mb-3" style="height: 20px;">
+        <div class="progress-bar @ProgressBarClass" 
+             role="progressbar" 
+             style="width: @(CapacityPercentage)%" 
+             aria-valuenow="@CurrentAttendees" 
+             aria-valuemin="0" 
+             aria-valuemax="@MaxCapacity">
+            @(CapacityPercentage)%
+        </div>
+    </div>
+
+    <div class="btn-group w-100" role="group">
+        <button class="btn btn-success btn-sm" @onclick="CheckIn" disabled="@(CurrentAttendees >= MaxCapacity)">
+            ➕ Check-In
+        </button>
+        <button class="btn btn-warning btn-sm" @onclick="CheckOut" disabled="@(CurrentAttendees <= 0)">
+            ➖ Check-Out
+        </button>
+    </div>
+</div>
+
+@code {
+    [Parameter] public int MaxCapacity { get; set; } = 100;
+    [Parameter] public int CurrentAttendees { get; set; } = 0;
+    [Parameter] public EventCallback<int> CurrentAttendeesChanged { get; set; }
+
+    private int CapacityPercentage => MaxCapacity > 0 ? (int)((double)CurrentAttendees / MaxCapacity * 100) : 0;
+
+    private string ProgressBarClass => CapacityPercentage match
+    {
+        >= 90 => "bg-danger",
+        >= 75 => "bg-warning",
+        _ => "bg-success"
+    };
+
+    private async Task CheckIn()
+    {
+        if (CurrentAttendees < MaxCapacity)
+        {
+            CurrentAttendees++;
+            await CurrentAttendeesChanged.InvokeAsync(CurrentAttendees);
+        }
+    }
+
+    private async Task CheckOut()
+    {
+        if (CurrentAttendees > 0)
+        {
+            CurrentAttendees--;
+            await CurrentAttendeesChanged.InvokeAsync(CurrentAttendees);
+        }
+    }
+}

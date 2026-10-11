@@ -1,0 +1,74 @@
+@page "/register/{EventId:int}"
+@using EventEaseApp.Models
+@using EventEaseApp.Services
+@inject UserSessionState SessionState
+@inject NavigationManager Navigation
+
+<div class="container my-4 max-width-600">
+    <h3 class="mb-3">Event Registration</h3>
+
+    @if (isSubmitted)
+    {
+        <div class="alert alert-success">
+            <h5>🎉 Registration Successful!</h5>
+            <p>Thank you, <strong>@registrationModel.FullName</strong>. A confirmation email has been sent to <strong>@registrationModel.Email</strong>.</p>
+            <a href="/events" class="btn btn-outline-primary">Back to Events</a>
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@registrationModel" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger mb-3" />
+
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <InputText class="form-control" @bind-Value="registrationModel.FullName" />
+                <ValidationMessage For="@(() => registrationModel.FullName)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <InputText class="form-control" @bind-Value="registrationModel.Email" />
+                <ValidationMessage For="@(() => registrationModel.Email)" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Number of Tickets (1-5)</label>
+                <InputNumber class="form-control" @bind-Value="registrationModel.TicketCount" />
+                <ValidationMessage For="@(() => registrationModel.TicketCount)" class="text-danger" />
+            </div>
+
+            <div class="mb-3 form-check">
+                <InputCheckbox class="form-check-input" @bind-Value="registrationModel.AcceptTerms" id="terms" />
+                <label class="form-check-label" for="terms">I accept the terms and conditions</label>
+                <ValidationMessage For="@(() => registrationModel.AcceptTerms)" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">Complete Registration</button>
+        </EditForm>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int EventId { get; set; }
+
+    private RegistrationModel registrationModel = new RegistrationModel();
+    private bool isSubmitted = false;
+
+    protected override void OnInitialized()
+    {
+        // Pre-fill user email if session state exists
+        if (SessionState.IsLoggedIn)
+        {
+            registrationModel.Email = SessionState.CurrentUserEmail;
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        SessionState.Login(registrationModel.Email);
+        isSubmitted = true;
+    }
+}

@@ -1,0 +1,62 @@
+@page "/event/{Id:int}"
+@using EventEaseApp.Models
+@using EventEaseApp.Services
+@using EventEaseApp.Components
+@inject UserSessionState Session
+@inject NavigationManager NavManager
+
+<div class="container my-4">
+    @if (eventItem == null)
+    {
+        <div class="alert alert-warning">
+            <h4>Event Not Found</h4>
+            <p>The requested event ID could not be located.</p>
+            <a href="/events" class="btn btn-primary">Return to Events</a>
+        </div>
+    }
+    else
+    {
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/events">Events</a></li>
+                <li class="breadcrumb-item active" aria-current="page">@eventItem.Title</li>
+            </ol>
+        </nav>
+
+        <div class="row">
+            <div class="col-md-8">
+                <h2>@eventItem.Title</h2>
+                <p class="text-muted">📅 @eventItem.Date.ToLongDateString() | 📍 @eventItem.Location</p>
+                <hr />
+                <p class="lead">@eventItem.Description</p>
+            </div>
+            <div class="col-md-4">
+                <AttendanceTracker MaxCapacity="@eventItem.MaxCapacity" 
+                                   @bind-CurrentAttendees="eventItem.RegisteredAttendees" />
+                
+                <div class="mt-3">
+                    <a href="/register/@eventItem.Id" class="btn btn-primary w-100">Register Now</a>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EventModel? eventItem;
+
+    protected override void OnInitialized()
+    {
+        // Mock dataset lookup for routing demonstration
+        var mockEvents = new List<EventModel>
+        {
+            new EventModel { Id = 1, Title = "Tech Summit 2026", Date = DateTime.Now.AddDays(10), Location = "Auditorium A", Description = "Annual software engineering and AI symposium.", MaxCapacity = 100, RegisteredAttendees = 85 },
+            new EventModel { Id = 2, Title = "Design Workshop", Date = DateTime.Now.AddDays(15), Location = "Room 302", Description = "Interactive hands-on UI/UX prototyping session.", MaxCapacity = 30, RegisteredAttendees = 12 }
+        };
+
+        eventItem = mockEvents.FirstOrDefault(e => e.Id == Id);
+    }
+}
